@@ -14,8 +14,36 @@ import careConfig from "@careConfig";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useLocationChange } from "raviger";
-import { lazy, Suspense, useEffect } from "react";
-import { PubSubProvider } from "./Utils/pubsubContext";
+import { lazy, Suspense, useCallback, useEffect, useRef } from "react";
+import { PubSubProvider, usePubSub } from "./Utils/pubsubContext";
+
+const PubSubRenderProbe = () => {
+  const { subscribe, unsubscribe } = usePubSub();
+  const handler = useCallback(async () => {}, []);
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+
+  return (
+    <div className="fixed right-4 top-20 z-[99999] rounded-lg border bg-white p-4 shadow-xl">
+      <div className="font-bold">PubSub Render Probe</div>
+      <div className="mb-3">Render count: {renderCount.current}</div>
+      <div className="flex gap-2">
+        <button
+          className="rounded bg-blue-600 px-3 py-2 text-white"
+          onClick={() => subscribe("react-scan-demo", handler)}
+        >
+          Subscribe
+        </button>
+        <button
+          className="rounded bg-red-600 px-3 py-2 text-white"
+          onClick={() => unsubscribe("react-scan-demo", handler)}
+        >
+          Unsubscribe
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const PatientRouter = lazy(() => import("@/Routers/PatientRouter"));
 const AppRouter = lazy(() => import("@/Routers/AppRouter"));
@@ -40,6 +68,7 @@ const App = () => {
         <ScrollToTop />
         <Suspense fallback={<Loading />}>
           <PubSubProvider>
+            <PubSubRenderProbe />
             <ShortcutProvider>
               <PluginEngine>
                 <OverrideProvider>
